@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/negroni"
 
 	"github.com/rlongo/ambrosia/api"
-	"github.com/rlongo/ambrosia/storage/mock"
+	"github.com/rlongo/ambrosia/storage/memory"
 )
 
 func assertStatus(t *testing.T, got, want int) {
@@ -66,7 +66,7 @@ func TestGETRecipesTest(t *testing.T) {
 		&api.Recipe{ID: 8, Name: "cookie3", Author: "a1", Rating: 1, Tags: []string{"cookie", "easter"}},
 	}
 
-	ambrosiaDB := mock.MockAmbrosiaStorage{recipesDB}
+	ambrosiaDB := memory.AmbrosiaStorageMemory{recipesDB}
 
 	testRunner := func(path string, expected api.Recipes) {
 		router := NewRouter(&ambrosiaDB, negroni.New())

@@ -1,4 +1,4 @@
-package mock
+package memory
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 	"github.com/rlongo/ambrosia/api"
 )
 
-type MockAmbrosiaStorage struct {
+type AmbrosiaStorageMemory struct {
 	RecipesDB api.Recipes
 }
 
 // Open fakes a new DB connection
-func Open(storageConnectionString string) (*MockAmbrosiaStorage, error) {
-	return &MockAmbrosiaStorage{}, nil
+func Open(storageConnectionString string) (*AmbrosiaStorageMemory, error) {
+	return &AmbrosiaStorageMemory{}, nil
 }
 
 func tagsFilter(tags []string, filter []string) bool {
@@ -38,7 +38,7 @@ func tagsFilter(tags []string, filter []string) bool {
 	return true
 }
 
-func (db *MockAmbrosiaStorage) GetRecipes(filterTags []string, filterAuthor string) (api.Recipes, error) {
+func (db *AmbrosiaStorageMemory) GetRecipes(filterTags []string, filterAuthor string) (api.Recipes, error) {
 	var results api.Recipes
 
 	for _, r := range db.RecipesDB {
@@ -50,14 +50,14 @@ func (db *MockAmbrosiaStorage) GetRecipes(filterTags []string, filterAuthor stri
 	return results, nil
 }
 
-func (db *MockAmbrosiaStorage) GetRecipe(id api.RecipeID) (api.Recipe, error) {
+func (db *AmbrosiaStorageMemory) GetRecipe(id api.RecipeID) (api.Recipe, error) {
 	return api.Recipe{}, fmt.Errorf("Not Implemented")
 }
 
-func (db *MockAmbrosiaStorage) AddRecipe(recipe *api.Recipe) error {
+func (db *AmbrosiaStorageMemory) AddRecipe(recipe *api.Recipe) error {
 	return fmt.Errorf("Not Implemented")
 }
 
-func (db *MockAmbrosiaStorage) UpdateRecipe(recipe *api.Recipe) error {
+func (db *AmbrosiaStorageMemory) UpdateRecipe(recipe *api.Recipe) error {
 	return fmt.Errorf("Not Implemented")
 }
