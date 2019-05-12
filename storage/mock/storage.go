@@ -15,8 +15,39 @@ func Open(storageConnectionString string) (*MockAmbrosiaStorage, error) {
 	return &MockAmbrosiaStorage{}, nil
 }
 
+func tagsFilter(tags []string, filter []string) bool {
+
+	if filter == nil || len(filter) == 0 {
+		return true
+	}
+
+	for _, f := range filter {
+		found := false
+		for _, t := range tags {
+			if t == f {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (db *MockAmbrosiaStorage) GetRecipes(filterTags []string, filterAuthor string) (api.Recipes, error) {
-	return nil, fmt.Errorf("Not Implemented")
+	var results api.Recipes
+
+	for _, r := range db.RecipesDB {
+		if (filterTags == nil || tagsFilter(r.Tags, filterTags)) && (len(filterAuthor) == 0 || filterAuthor == r.Author) {
+			results = append(results, r)
+		}
+	}
+
+	return results, nil
 }
 
 func (db *MockAmbrosiaStorage) GetRecipe(id api.RecipeID) (api.Recipe, error) {
