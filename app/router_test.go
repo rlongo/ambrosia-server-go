@@ -133,7 +133,7 @@ func TestPOSTRecipes(t *testing.T) {
 	recipe := api.Recipe{ID: 82, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
 	ambrosiaDB := memory.AmbrosiaStorageMemory{}
 
-	t.Run("query succeeds", func(t *testing.T) {
+	t.Run("post succeeds", func(t *testing.T) {
 		router := NewRouter(&ambrosiaDB, negroni.New())
 
 		expectedTestJSON, _ := json.Marshal(recipe)
@@ -152,5 +152,43 @@ func TestPOSTRecipes(t *testing.T) {
 
 		assertStatus(t, response.Code, http.StatusOK)
 		assertBodyRecipe(t, response.Body.Bytes(), recipe)
+	})
+}
+
+func TestPUTRecipes(t *testing.T) {
+	recipe := api.Recipe{ID: 82, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
+	ambrosiaDB := memory.AmbrosiaStorageMemory{RecipesDB: api.Recipes{recipe}}
+
+	t.Run("put succeeds", func(t *testing.T) {
+		router := NewRouter(&ambrosiaDB, negroni.New())
+		recipe.Author = "a2"
+
+		expectedTestJSON, _ := json.Marshal(recipe)
+		b := bytes.NewBuffer(expectedTestJSON)
+
+		request, _ := http.NewRequest(http.MethodPut, "/api/v1/recipe/82", b)
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusCreated)
+
+		fmt.Printf("Total %v\n", ambrosiaDB.RecipesDB[0])
+
+		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipe/82", nil)
+		response = httptest.NewRecorder()
+		router.ServeHTTP(response, request)
+
+		assertStatus(t, response.Code, http.StatusOK)
+
+		var result api.Recipe
+
+		if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+			t.Errorf("Response was invalid JSON")
+		}
+
+		if result.Author != "a2" {
+			t.Errorf("Response mismatch. Expected: '%s', Got: '%s'",
+				"a2", result.Author)
+		}
+
 	})
 }

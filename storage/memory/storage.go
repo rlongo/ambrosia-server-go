@@ -68,5 +68,13 @@ func (db *AmbrosiaStorageMemory) AddRecipe(recipe *api.Recipe) error {
 }
 
 func (db *AmbrosiaStorageMemory) UpdateRecipe(recipe *api.Recipe) error {
-	return fmt.Errorf("Not Implemented")
+	log.Println("Warning: AmbrosiaStorageMemory.UpdateRecipe not safe for production!")
+	for i, r := range db.RecipesDB {
+		if r.ID == recipe.ID {
+			db.RecipesDB[i] = *recipe
+			return nil
+		}
+	}
+
+	return fmt.Errorf("Result not found")
 }
