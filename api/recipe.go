@@ -14,7 +14,7 @@ type Recipe struct {
 }
 
 // The Recipes is a convenience wrapper for all recipe types
-type Recipes []*Recipe
+type Recipes []Recipe
 
 // The StorageServiceRecipes is an interface for the backend storage service
 type StorageServiceRecipes interface {

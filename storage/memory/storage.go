@@ -2,6 +2,7 @@ package memory
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/rlongo/ambrosia/api"
 )
@@ -53,7 +54,7 @@ func (db *AmbrosiaStorageMemory) GetRecipes(filterTags []string, filterAuthor st
 func (db *AmbrosiaStorageMemory) GetRecipe(id api.RecipeID) (api.Recipe, error) {
 	for _, r := range db.RecipesDB {
 		if r.ID == id {
-			return *r, nil
+			return r, nil
 		}
 	}
 
@@ -61,7 +62,9 @@ func (db *AmbrosiaStorageMemory) GetRecipe(id api.RecipeID) (api.Recipe, error) 
 }
 
 func (db *AmbrosiaStorageMemory) AddRecipe(recipe *api.Recipe) error {
-	return fmt.Errorf("Not Implemented")
+	log.Println("Warning: AmbrosiaStorageMemory.AddRecipe not safe for production!")
+	db.RecipesDB = append(db.RecipesDB, *recipe)
+	return nil
 }
 
 func (db *AmbrosiaStorageMemory) UpdateRecipe(recipe *api.Recipe) error {

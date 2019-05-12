@@ -1,7 +1,9 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,7 +21,7 @@ func assertStatus(t *testing.T, got, want int) {
 	}
 }
 
-func assertResponseBodyTests(t *testing.T, got []byte, want api.Recipes) {
+func assertBodyRecipes(t *testing.T, got []byte, want api.Recipes) {
 	t.Helper()
 	var results api.Recipes
 
@@ -39,7 +41,7 @@ func assertResponseBodyTests(t *testing.T, got []byte, want api.Recipes) {
 	}
 }
 
-func assertResponseBodyTest(t *testing.T, got []byte, want api.Recipe) {
+func assertBodyRecipe(t *testing.T, got []byte, want api.Recipe) {
 	t.Helper()
 	var result api.Recipe
 
@@ -55,15 +57,15 @@ func assertResponseBodyTest(t *testing.T, got []byte, want api.Recipe) {
 
 func TestSearchRecipes(t *testing.T) {
 	recipesDB := api.Recipes{
-		&api.Recipe{ID: 0, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
-		&api.Recipe{ID: 1, Name: "cake2", Author: "a1", Rating: 1, Tags: []string{"cake", "xmas"}},
-		&api.Recipe{ID: 2, Name: "cake3", Author: "a2", Rating: 1, Tags: []string{"cake", "xmas", "nye"}},
-		&api.Recipe{ID: 3, Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
-		&api.Recipe{ID: 4, Name: "pie2", Author: "a2", Rating: 1, Tags: []string{"pie", "easter"}},
-		&api.Recipe{ID: 5, Name: "pie3", Author: "a3", Rating: 1, Tags: []string{"pie", "bday"}},
-		&api.Recipe{ID: 6, Name: "cookie1", Author: "a3", Rating: 1, Tags: []string{"cookie", "bday"}},
-		&api.Recipe{ID: 7, Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
-		&api.Recipe{ID: 8, Name: "cookie3", Author: "a1", Rating: 1, Tags: []string{"cookie", "easter"}},
+		api.Recipe{ID: 0, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
+		api.Recipe{ID: 1, Name: "cake2", Author: "a1", Rating: 1, Tags: []string{"cake", "xmas"}},
+		api.Recipe{ID: 2, Name: "cake3", Author: "a2", Rating: 1, Tags: []string{"cake", "xmas", "nye"}},
+		api.Recipe{ID: 3, Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
+		api.Recipe{ID: 4, Name: "pie2", Author: "a2", Rating: 1, Tags: []string{"pie", "easter"}},
+		api.Recipe{ID: 5, Name: "pie3", Author: "a3", Rating: 1, Tags: []string{"pie", "bday"}},
+		api.Recipe{ID: 6, Name: "cookie1", Author: "a3", Rating: 1, Tags: []string{"cookie", "bday"}},
+		api.Recipe{ID: 7, Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
+		api.Recipe{ID: 8, Name: "cookie3", Author: "a1", Rating: 1, Tags: []string{"cookie", "easter"}},
 	}
 
 	ambrosiaDB := memory.AmbrosiaStorageMemory{recipesDB}
@@ -75,7 +77,7 @@ func TestSearchRecipes(t *testing.T) {
 		router.ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
-		assertResponseBodyTests(t, response.Body.Bytes(), expected)
+		assertBodyRecipes(t, response.Body.Bytes(), expected)
 	}
 
 	t.Run("no query params", func(t *testing.T) {
@@ -105,9 +107,9 @@ func TestSearchRecipes(t *testing.T) {
 
 func TestGETRecipes(t *testing.T) {
 	recipesDB := api.Recipes{
-		&api.Recipe{ID: 0, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
-		&api.Recipe{ID: 3, Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
-		&api.Recipe{ID: 7, Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
+		api.Recipe{ID: 0, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
+		api.Recipe{ID: 3, Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
+		api.Recipe{ID: 7, Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
 	}
 
 	ambrosiaDB := memory.AmbrosiaStorageMemory{recipesDB}
@@ -119,10 +121,36 @@ func TestGETRecipes(t *testing.T) {
 		router.ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
-		assertResponseBodyTest(t, response.Body.Bytes(), expected)
+		assertBodyRecipe(t, response.Body.Bytes(), expected)
 	}
 
 	t.Run("query succeeds", func(t *testing.T) {
-		testRunner("/api/v1/recipe/3", *recipesDB[1])
+		testRunner("/api/v1/recipe/3", recipesDB[1])
+	})
+}
+
+func TestPOSTRecipes(t *testing.T) {
+	recipe := api.Recipe{ID: 82, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
+	ambrosiaDB := memory.AmbrosiaStorageMemory{}
+
+	t.Run("query succeeds", func(t *testing.T) {
+		router := NewRouter(&ambrosiaDB, negroni.New())
+
+		expectedTestJSON, _ := json.Marshal(recipe)
+		b := bytes.NewBuffer(expectedTestJSON)
+
+		request, _ := http.NewRequest(http.MethodPost, "/api/v1/recipe", b)
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusCreated)
+
+		fmt.Printf("Total %v\n", ambrosiaDB.RecipesDB[0])
+
+		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipe/82", nil)
+		response = httptest.NewRecorder()
+		router.ServeHTTP(response, request)
+
+		assertStatus(t, response.Code, http.StatusOK)
+		assertBodyRecipe(t, response.Body.Bytes(), recipe)
 	})
 }

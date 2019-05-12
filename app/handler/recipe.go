@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -47,7 +49,33 @@ func GetRecipe(storage api.StorageServiceRecipes) http.HandlerFunc {
 
 func AddRecipe(storage api.StorageServiceRecipes) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		setErrorResponse(w, http.StatusNotFound, fmt.Errorf("Not Implemented"))
+		var recipe api.Recipe
+
+		if r.Body == nil {
+			setErrorResponse(w, http.StatusBadRequest, fmt.Errorf("Can't process an empty response"))
+			return
+		}
+
+		// Read out portion of body to avoid spurious crashes
+		body, err := ioutil.ReadAll(io.LimitReader(r.Body, PostMaxSize))
+		if err != nil {
+			panic(err)
+		}
+		if err := r.Body.Close(); err != nil {
+			panic(err)
+		}
+
+		if err := json.Unmarshal(body, &recipe); err != nil {
+			setErrorResponse(w, http.StatusBadRequest, err)
+			return
+		}
+
+		if err := storage.AddRecipe(&recipe); err == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+		} else {
+			setErrorResponse(w, http.StatusBadRequest, err)
+		}
 	}
 }
 

@@ -17,8 +17,8 @@ type route struct {
 type routes []route
 
 var ambrosiaRoutes = routes{
-	route{"Recipes List", "GET", "/recipes", handler.SearchRecipes},
-	route{"Single Recipe", "GET", "/recipe/{id}", handler.GetRecipe},
-	route{"Add Recipe", "POST", "/recipe", handler.AddRecipe},
-	route{"Update Recipe", "PUT", "/recipe/{id}", handler.UpdateRecipe},
+	route{"Recipes List", http.MethodGet, "/recipes", handler.SearchRecipes},
+	route{"Single Recipe", http.MethodGet, "/recipe/{id}", handler.GetRecipe},
+	route{"Add Recipe", http.MethodPost, "/recipe", handler.AddRecipe},
+	route{"Update Recipe", http.MethodPut, "/recipe/{id}", handler.UpdateRecipe},
 }
