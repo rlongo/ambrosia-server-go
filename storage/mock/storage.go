@@ -15,7 +15,7 @@ func Open(storageConnectionString string) (*MockAmbrosiaStorage, error) {
 	return &MockAmbrosiaStorage{}, nil
 }
 
-func (db *MockAmbrosiaStorage) GetRecipes(filterTags []string, filterAuthor string, filterMinRating uint8) (api.Recipes, error) {
+func (db *MockAmbrosiaStorage) GetRecipes(filterTags []string, filterAuthor string) (api.Recipes, error) {
 	return nil, fmt.Errorf("Not Implemented")
 }
 

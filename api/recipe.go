@@ -18,7 +18,7 @@ type Recipes []*Recipe
 
 // The StorageServiceRecipes is an interface for the backend storage service
 type StorageServiceRecipes interface {
-	GetRecipes(filterTags []string, filterAuthor string, filterMinRating uint8) (Recipes, error)
+	GetRecipes(filterTags []string, filterAuthor string) (Recipes, error)
 	GetRecipe(id RecipeID) (Recipe, error)
 	AddRecipe(recipe *Recipe) error
 	UpdateRecipe(recipe *Recipe) error
