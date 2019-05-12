@@ -4,13 +4,13 @@ type RecipeID uint64
 
 // The Recipe struct is a wrapper for the entire recipe
 type Recipe struct {
-	ID     RecipeID `json:"_id"`
-	Name   string   `json:"name"`
-	Author string   `json:"author"`
-	Rating uint8    `json:"rating"`
-	Notes  string   `json:"notes"`
-	Tags   []string `json:"tags"`
-	Staves []Stage  `json:"stages"`
+	ID     RecipeID `json:"_id" bson:"_id"`
+	Name   string   `json:"name" bson:"name"`
+	Author string   `json:"author" bson:"author"`
+	Rating uint8    `json:"rating" bson:"rating"`
+	Notes  string   `json:"notes" bson:"notes"`
+	Tags   []string `json:"tags" bson:"tags"`
+	Staves Stages   `json:"stages" bson:"stages"`
 }
 
 // The Recipes is a convenience wrapper for all recipe types

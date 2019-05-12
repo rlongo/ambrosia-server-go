@@ -1,4 +1,4 @@
-package memory
+package storage
 
 import (
 	"fmt"
@@ -9,11 +9,6 @@ import (
 
 type AmbrosiaStorageMemory struct {
 	RecipesDB api.Recipes
-}
-
-// Open fakes a new DB connection
-func Open(storageConnectionString string) (*AmbrosiaStorageMemory, error) {
-	return &AmbrosiaStorageMemory{}, nil
 }
 
 func tagsFilter(tags []string, filter []string) bool {

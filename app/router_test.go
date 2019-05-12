@@ -11,7 +11,7 @@ import (
 	"github.com/urfave/negroni"
 
 	"github.com/rlongo/ambrosia/api"
-	"github.com/rlongo/ambrosia/storage/memory"
+	"github.com/rlongo/ambrosia/storage"
 )
 
 func assertStatus(t *testing.T, got, want int) {
@@ -68,7 +68,7 @@ func TestSearchRecipes(t *testing.T) {
 		api.Recipe{ID: 8, Name: "cookie3", Author: "a1", Rating: 1, Tags: []string{"cookie", "easter"}},
 	}
 
-	ambrosiaDB := memory.AmbrosiaStorageMemory{recipesDB}
+	ambrosiaDB := storage.AmbrosiaStorageMemory{recipesDB}
 
 	testRunner := func(path string, expected api.Recipes) {
 		router := NewRouter(&ambrosiaDB, negroni.New())
@@ -112,7 +112,7 @@ func TestGETRecipes(t *testing.T) {
 		api.Recipe{ID: 7, Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
 	}
 
-	ambrosiaDB := memory.AmbrosiaStorageMemory{recipesDB}
+	ambrosiaDB := storage.AmbrosiaStorageMemory{recipesDB}
 
 	testRunner := func(path string, expected api.Recipe) {
 		router := NewRouter(&ambrosiaDB, negroni.New())
@@ -131,7 +131,7 @@ func TestGETRecipes(t *testing.T) {
 
 func TestPOSTRecipes(t *testing.T) {
 	recipe := api.Recipe{ID: 82, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
-	ambrosiaDB := memory.AmbrosiaStorageMemory{}
+	ambrosiaDB := storage.AmbrosiaStorageMemory{}
 
 	t.Run("post succeeds", func(t *testing.T) {
 		router := NewRouter(&ambrosiaDB, negroni.New())
@@ -157,7 +157,7 @@ func TestPOSTRecipes(t *testing.T) {
 
 func TestPUTRecipes(t *testing.T) {
 	recipe := api.Recipe{ID: 82, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
-	ambrosiaDB := memory.AmbrosiaStorageMemory{RecipesDB: api.Recipes{recipe}}
+	ambrosiaDB := storage.AmbrosiaStorageMemory{RecipesDB: api.Recipes{recipe}}
 
 	t.Run("put succeeds", func(t *testing.T) {
 		router := NewRouter(&ambrosiaDB, negroni.New())

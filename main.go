@@ -7,9 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/rlongo/ambrosia/api"
 	"github.com/rlongo/ambrosia/app"
-	"github.com/rlongo/ambrosia/storage/memory"
+	"github.com/rlongo/ambrosia/storage"
 	"github.com/urfave/negroni"
 )
 
@@ -22,17 +21,21 @@ func getOSVariable(key string) string {
 }
 
 func main() {
-
+	db := getOSVariable("DB_URL")
 	port := getOSVariable("PORT")
 
-	recipesDB := api.Recipes{}
+	storageService, err := storage.OpenMongo(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	storageService := memory.AmbrosiaStorageMemory{RecipesDB: recipesDB}
+	defer storageService.Close()
+
 	middleware := negroni.New(
 		negroni.NewRecovery(),
 		negroni.NewLogger(),
 	)
-	router := app.NewRouter(&storageService, middleware)
+	router := app.NewRouter(storageService, middleware)
 
 	log.Printf("listening on IPv4 address \"0.0.0.0\", port %s", port)
 	log.Printf("listening on IPv6 address \"::\", port %s", port)
