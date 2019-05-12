@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/rlongo/ambrosia/api"
 )
 
@@ -27,7 +29,19 @@ func SearchRecipes(storage api.StorageServiceRecipes) http.HandlerFunc {
 
 func GetRecipe(storage api.StorageServiceRecipes) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		setErrorResponse(w, http.StatusNotFound, fmt.Errorf("Not Implemented"))
+		params := mux.Vars(r)
+		var recipeID = params["id"]
+		if recipeID, err := strconv.ParseUint(recipeID, 10, 64); err == nil {
+			if r, err := storage.GetRecipe(api.RecipeID(recipeID)); err == nil {
+				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(r)
+			} else {
+				setErrorResponse(w, http.StatusNotFound, err)
+			}
+		} else {
+			setErrorResponse(w, http.StatusNotFound, fmt.Errorf("ID Wasn't Valid"))
+		}
 	}
 }
 

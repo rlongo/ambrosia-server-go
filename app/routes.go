@@ -18,7 +18,7 @@ type routes []route
 
 var ambrosiaRoutes = routes{
 	route{"Recipes List", "GET", "/recipes", handler.SearchRecipes},
-	route{"List Recipe", "GET", "/recipe/{id}", handler.GetRecipe},
+	route{"Single Recipe", "GET", "/recipe/{id}", handler.GetRecipe},
 	route{"Add Recipe", "POST", "/recipe", handler.AddRecipe},
 	route{"Update Recipe", "PUT", "/recipe/{id}", handler.UpdateRecipe},
 }

@@ -53,7 +53,7 @@ func assertResponseBodyTest(t *testing.T, got []byte, want api.Recipe) {
 	}
 }
 
-func TestGETRecipesTest(t *testing.T) {
+func TestSearchRecipes(t *testing.T) {
 	recipesDB := api.Recipes{
 		&api.Recipe{ID: 0, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
 		&api.Recipe{ID: 1, Name: "cake2", Author: "a1", Rating: 1, Tags: []string{"cake", "xmas"}},
@@ -100,5 +100,29 @@ func TestGETRecipesTest(t *testing.T) {
 	t.Run("filter author + tag", func(t *testing.T) {
 		expected := api.Recipes{recipesDB[0], recipesDB[8]}
 		testRunner("/api/v1/recipes?author=a1&tag=easter", expected)
+	})
+}
+
+func TestGETRecipes(t *testing.T) {
+	recipesDB := api.Recipes{
+		&api.Recipe{ID: 0, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
+		&api.Recipe{ID: 3, Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
+		&api.Recipe{ID: 7, Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
+	}
+
+	ambrosiaDB := memory.AmbrosiaStorageMemory{recipesDB}
+
+	testRunner := func(path string, expected api.Recipe) {
+		router := NewRouter(&ambrosiaDB, negroni.New())
+		request, _ := http.NewRequest(http.MethodGet, path, nil)
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, request)
+
+		assertStatus(t, response.Code, http.StatusOK)
+		assertResponseBodyTest(t, response.Body.Bytes(), expected)
+	}
+
+	t.Run("query succeeds", func(t *testing.T) {
+		testRunner("/api/v1/recipe/3", *recipesDB[1])
 	})
 }

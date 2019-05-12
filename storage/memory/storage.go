@@ -51,7 +51,13 @@ func (db *AmbrosiaStorageMemory) GetRecipes(filterTags []string, filterAuthor st
 }
 
 func (db *AmbrosiaStorageMemory) GetRecipe(id api.RecipeID) (api.Recipe, error) {
-	return api.Recipe{}, fmt.Errorf("Not Implemented")
+	for _, r := range db.RecipesDB {
+		if r.ID == id {
+			return *r, nil
+		}
+	}
+
+	return api.Recipe{}, fmt.Errorf("Result not found")
 }
 
 func (db *AmbrosiaStorageMemory) AddRecipe(recipe *api.Recipe) error {
