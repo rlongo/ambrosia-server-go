@@ -6,8 +6,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 
+	guid "github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/rlongo/ambrosia/api"
 )
@@ -33,7 +33,7 @@ func GetRecipe(storage api.StorageServiceRecipes) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		var recipeID = params["id"]
-		if recipeID, err := strconv.ParseUint(recipeID, 10, 64); err == nil {
+		if recipeID, err := guid.Parse(recipeID); err == nil {
 			if r, err := storage.GetRecipe(api.RecipeID(recipeID)); err == nil {
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				w.WriteHeader(http.StatusOK)

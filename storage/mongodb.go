@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	guid "github.com/google/uuid"
 	"github.com/rlongo/ambrosia/api"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -77,7 +78,12 @@ func (db *AmbrosiaStorageMongo) GetRecipe(id api.RecipeID) (api.Recipe, error) {
 }
 
 func (db *AmbrosiaStorageMongo) AddRecipe(recipe *api.Recipe) error {
-	_, err := db.collection.InsertOne(context.Background(), recipe)
+	uuid, err := guid.NewUUID()
+	if err != nil {
+		return err
+	}
+	recipe.ID = api.RecipeID(uuid)
+	_, err = db.collection.InsertOne(context.Background(), recipe)
 	return err
 }
 

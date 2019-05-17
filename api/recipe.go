@@ -1,6 +1,6 @@
 package api
 
-type RecipeID uint64
+type RecipeID [16]byte
 
 // The Recipe struct is a wrapper for the entire recipe
 type Recipe struct {

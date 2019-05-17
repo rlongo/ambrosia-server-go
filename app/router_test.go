@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	guid "github.com/google/uuid"
 	"github.com/urfave/negroni"
 
 	"github.com/rlongo/ambrosia/api"
@@ -57,15 +58,15 @@ func assertBodyRecipe(t *testing.T, got []byte, want api.Recipe) {
 
 func TestSearchRecipes(t *testing.T) {
 	recipesDB := api.Recipes{
-		api.Recipe{ID: 0, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
-		api.Recipe{ID: 1, Name: "cake2", Author: "a1", Rating: 1, Tags: []string{"cake", "xmas"}},
-		api.Recipe{ID: 2, Name: "cake3", Author: "a2", Rating: 1, Tags: []string{"cake", "xmas", "nye"}},
-		api.Recipe{ID: 3, Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
-		api.Recipe{ID: 4, Name: "pie2", Author: "a2", Rating: 1, Tags: []string{"pie", "easter"}},
-		api.Recipe{ID: 5, Name: "pie3", Author: "a3", Rating: 1, Tags: []string{"pie", "bday"}},
-		api.Recipe{ID: 6, Name: "cookie1", Author: "a3", Rating: 1, Tags: []string{"cookie", "bday"}},
-		api.Recipe{ID: 7, Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
-		api.Recipe{ID: 8, Name: "cookie3", Author: "a1", Rating: 1, Tags: []string{"cookie", "easter"}},
+		api.Recipe{Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
+		api.Recipe{Name: "cake2", Author: "a1", Rating: 1, Tags: []string{"cake", "xmas"}},
+		api.Recipe{Name: "cake3", Author: "a2", Rating: 1, Tags: []string{"cake", "xmas", "nye"}},
+		api.Recipe{Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
+		api.Recipe{Name: "pie2", Author: "a2", Rating: 1, Tags: []string{"pie", "easter"}},
+		api.Recipe{Name: "pie3", Author: "a3", Rating: 1, Tags: []string{"pie", "bday"}},
+		api.Recipe{Name: "cookie1", Author: "a3", Rating: 1, Tags: []string{"cookie", "bday"}},
+		api.Recipe{Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
+		api.Recipe{Name: "cookie3", Author: "a1", Rating: 1, Tags: []string{"cookie", "easter"}},
 	}
 
 	ambrosiaDB := storage.AmbrosiaStorageMemory{recipesDB}
@@ -106,10 +107,16 @@ func TestSearchRecipes(t *testing.T) {
 }
 
 func TestGETRecipes(t *testing.T) {
+	var uuids [3]guid.UUID
+
+	for i := 0; i < 3; i++ {
+		uuids[i], _ = guid.NewUUID()
+	}
+
 	recipesDB := api.Recipes{
-		api.Recipe{ID: 0, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
-		api.Recipe{ID: 3, Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
-		api.Recipe{ID: 7, Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
+		api.Recipe{ID: api.RecipeID(uuids[0]), Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
+		api.Recipe{ID: api.RecipeID(uuids[1]), Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
+		api.Recipe{ID: api.RecipeID(uuids[2]), Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
 	}
 
 	ambrosiaDB := storage.AmbrosiaStorageMemory{recipesDB}
@@ -125,12 +132,13 @@ func TestGETRecipes(t *testing.T) {
 	}
 
 	t.Run("query succeeds", func(t *testing.T) {
-		testRunner("/api/v1/recipe/3", recipesDB[1])
+		testRunner("/api/v1/recipe/"+uuids[1].String(), recipesDB[1])
 	})
 }
 
 func TestPOSTRecipes(t *testing.T) {
-	recipe := api.Recipe{ID: 82, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
+	uuid, _ := guid.NewUUID()
+	recipe := api.Recipe{ID: api.RecipeID(uuid), Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
 	ambrosiaDB := storage.AmbrosiaStorageMemory{}
 
 	t.Run("post succeeds", func(t *testing.T) {
@@ -146,7 +154,7 @@ func TestPOSTRecipes(t *testing.T) {
 
 		fmt.Printf("Total %v\n", ambrosiaDB.RecipesDB[0])
 
-		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipe/82", nil)
+		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipe/"+uuid.String(), nil)
 		response = httptest.NewRecorder()
 		router.ServeHTTP(response, request)
 
@@ -156,7 +164,8 @@ func TestPOSTRecipes(t *testing.T) {
 }
 
 func TestPUTRecipes(t *testing.T) {
-	recipe := api.Recipe{ID: 82, Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
+	uuid, _ := guid.NewUUID()
+	recipe := api.Recipe{ID: api.RecipeID(uuid), Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
 	ambrosiaDB := storage.AmbrosiaStorageMemory{RecipesDB: api.Recipes{recipe}}
 
 	t.Run("put succeeds", func(t *testing.T) {
@@ -166,14 +175,14 @@ func TestPUTRecipes(t *testing.T) {
 		expectedTestJSON, _ := json.Marshal(recipe)
 		b := bytes.NewBuffer(expectedTestJSON)
 
-		request, _ := http.NewRequest(http.MethodPut, "/api/v1/recipe/82", b)
+		request, _ := http.NewRequest(http.MethodPut, "/api/v1/recipe/"+uuid.String(), b)
 		response := httptest.NewRecorder()
 		router.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusCreated)
 
 		fmt.Printf("Total %v\n", ambrosiaDB.RecipesDB[0])
 
-		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipe/82", nil)
+		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipe/"+uuid.String(), nil)
 		response = httptest.NewRecorder()
 		router.ServeHTTP(response, request)
 
