@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	dbname         = "ambrosia"
-	collectionName = "recipes"
+	dbname            = "ambrosia"
+	RecipesCollection = "recipes"
 )
 
 // AmbrosiaStorageMongo is a MongoDB driver implementation
@@ -23,7 +23,7 @@ type AmbrosiaStorageMongo struct {
 }
 
 // Open creates a new DB connection
-func OpenMongo(storageConnectionString string) (*AmbrosiaStorageMongo, error) {
+func OpenMongo(storageConnectionString string, collectionName string) (*AmbrosiaStorageMongo, error) {
 	clientOptions := options.Client().ApplyURI(storageConnectionString)
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
@@ -74,7 +74,24 @@ func (db *AmbrosiaStorageMongo) GetRecipes(filterTags []string, filterAuthor str
 }
 
 func (db *AmbrosiaStorageMongo) GetRecipe(id api.RecipeID) (api.Recipe, error) {
-	return api.Recipe{}, fmt.Errorf("Result not found")
+	var (
+		result api.Recipes
+		cur    *mongo.Cursor
+		err    error
+	)
+
+	if cur, err = db.collection.Find(context.Background(), bson.M{"_id": id}); err == nil {
+		if err = cur.All(context.Background(), &result); err == nil {
+			if len(result) > 1 {
+				return api.Recipe{}, fmt.Errorf("Should only have returned 1 record. Logic error")
+			} else if len(result) == 1 {
+				return result[0], nil
+			}
+			return api.Recipe{}, fmt.Errorf("No matches found")
+		}
+	}
+
+	return api.Recipe{}, err
 }
 
 func (db *AmbrosiaStorageMongo) AddRecipe(recipe *api.Recipe) error {
@@ -83,10 +100,11 @@ func (db *AmbrosiaStorageMongo) AddRecipe(recipe *api.Recipe) error {
 		return err
 	}
 	recipe.ID = api.RecipeID(uuid)
-	_, err = db.collection.InsertOne(context.Background(), recipe)
+	_, err = db.collection.InsertOne(context.Background(), *recipe)
 	return err
 }
 
 func (db *AmbrosiaStorageMongo) UpdateRecipe(recipe *api.Recipe) error {
-	return fmt.Errorf("Result not found")
+	_, err := db.collection.UpdateOne(context.Background(), bson.M{"_id": recipe.ID}, recipe)
+	return err
 }

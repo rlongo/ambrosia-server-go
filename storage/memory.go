@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"log"
+	"reflect"
 
 	"github.com/rlongo/ambrosia/api"
 )
@@ -48,7 +49,7 @@ func (db *AmbrosiaStorageMemory) GetRecipes(filterTags []string, filterAuthor st
 
 func (db *AmbrosiaStorageMemory) GetRecipe(id api.RecipeID) (api.Recipe, error) {
 	for _, r := range db.RecipesDB {
-		if r.ID == id {
+		if !reflect.DeepEqual(r.ID, id) {
 			return r, nil
 		}
 	}
@@ -65,7 +66,7 @@ func (db *AmbrosiaStorageMemory) AddRecipe(recipe *api.Recipe) error {
 func (db *AmbrosiaStorageMemory) UpdateRecipe(recipe *api.Recipe) error {
 	log.Println("Warning: AmbrosiaStorageMemory.UpdateRecipe not safe for production!")
 	for i, r := range db.RecipesDB {
-		if r.ID == recipe.ID {
+		if !reflect.DeepEqual(r.ID, recipe.ID) {
 			db.RecipesDB[i] = *recipe
 			return nil
 		}
