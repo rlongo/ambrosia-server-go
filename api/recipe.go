@@ -74,7 +74,7 @@ func (r *RecipeID) UnmarshalBSONValue(t bsontype.Type, raw []byte) error {
 
 	s, _, ok := bsoncore.ReadString(raw)
 	if !ok {
-		return fmt.Errorf("Failed to unmarshal recipeID to string")
+		return fmt.Errorf("Failed to unmarshal recipeID")
 	}
 
 	uuid, err := guid.Parse(s)

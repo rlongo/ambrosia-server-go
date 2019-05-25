@@ -50,7 +50,12 @@ func (db *AmbrosiaStorageMongo) GetRecipes(filterTags []string, filterAuthor str
 	hasFilterAuthor := len(filterAuthor) > 0
 
 	if hasFilterTags {
-		filter = bson.M{"tags": bson.M{"$in": filterTags}}
+		filter = bson.M{"tags": bson.M{"$in": []string{filterTags[0]}}}
+
+		for i := 1; i < len(filterTags); i++ {
+			tagFilter := bson.M{"tags": bson.M{"$in": []string{filterTags[i]}}}
+			filter = bson.M{"$and": bson.A{filter, tagFilter}}
+		}
 	}
 
 	if hasFilterAuthor {
@@ -74,24 +79,13 @@ func (db *AmbrosiaStorageMongo) GetRecipes(filterTags []string, filterAuthor str
 }
 
 func (db *AmbrosiaStorageMongo) GetRecipe(id api.RecipeID) (api.Recipe, error) {
-	var (
-		result api.Recipes
-		cur    *mongo.Cursor
-		err    error
-	)
+	var result api.Recipe
 
-	if cur, err = db.collection.Find(context.Background(), bson.M{"_id": id}); err == nil {
-		if err = cur.All(context.Background(), &result); err == nil {
-			if len(result) > 1 {
-				return api.Recipe{}, fmt.Errorf("Should only have returned 1 record. Logic error")
-			} else if len(result) == 1 {
-				return result[0], nil
-			}
-			return api.Recipe{}, fmt.Errorf("No matches found")
-		}
+	if err := db.collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&result); err != nil {
+		return api.Recipe{}, fmt.Errorf("No matches found")
 	}
 
-	return api.Recipe{}, err
+	return result, nil
 }
 
 func (db *AmbrosiaStorageMongo) AddRecipe(recipe *api.Recipe) error {
@@ -105,6 +99,14 @@ func (db *AmbrosiaStorageMongo) AddRecipe(recipe *api.Recipe) error {
 }
 
 func (db *AmbrosiaStorageMongo) UpdateRecipe(recipe *api.Recipe) error {
-	_, err := db.collection.UpdateOne(context.Background(), bson.M{"_id": recipe.ID}, recipe)
-	return err
+	result, err := db.collection.UpdateOne(context.Background(), bson.M{"_id": recipe.ID}, bson.M{"$set": recipe})
+	if err != nil {
+		return err
+	}
+
+	if result.ModifiedCount == 0 {
+		return fmt.Errorf("No Documents Updated")
+	}
+
+	return nil
 }
