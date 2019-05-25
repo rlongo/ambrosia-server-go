@@ -4,3 +4,8 @@ go:
 
 services:
   - mongodb
+
+# safelist
+branches:
+  only:
+  - master
