@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	guid "github.com/google/uuid"
@@ -14,6 +15,9 @@ const (
 )
 
 func getConnectionURL() string {
+	if v := os.Getenv("DB_URL"); len(v) > 0 {
+		return v
+	}
 	return dbURL
 }
 
