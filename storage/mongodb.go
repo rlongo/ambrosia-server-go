@@ -70,7 +70,6 @@ func (db *AmbrosiaStorageMongo) GetRecipes(filterTags []string, filterAuthor str
 
 	if cur, err = db.collection.Find(context.Background(), filter); err == nil {
 		if err = cur.All(context.Background(), &result); err == nil {
-			fmt.Println("Got all recipes!")
 			return result, nil
 		}
 	}

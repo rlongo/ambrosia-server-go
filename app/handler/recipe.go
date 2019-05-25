@@ -33,6 +33,7 @@ func GetRecipe(storage api.StorageServiceRecipes) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		var recipeID = params["id"]
+		fmt.Printf("Asked for recipe: %s\n", recipeID)
 		if recipeID, err := guid.Parse(recipeID); err == nil {
 			if r, err := storage.GetRecipe(api.RecipeID(recipeID)); err == nil {
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")

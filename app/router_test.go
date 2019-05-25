@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -34,10 +33,21 @@ func assertBodyRecipes(t *testing.T, got []byte, want api.Recipes) {
 		t.Errorf("Response size is wrong. Expected: %d, Got: %d", len(want), len(results))
 	}
 
-	for i := range results {
-		if results[i].ID != want[i].ID {
-			t.Errorf("Response mismatch at index %d. Expected: '%d', Got: '%d'",
-				i, want[i].ID, results[i].ID)
+	set := make(map[string]bool)
+	for _, v := range want {
+		set[v.Name] = false
+	}
+
+	for _, v := range results {
+		if _, ok := set[v.Name]; !ok {
+			t.Errorf("Unexpected result '%s'", v.Name)
+		}
+		set[v.Name] = true
+	}
+
+	for k, v := range set {
+		if !v {
+			t.Errorf("Expected result not found '%s'", k)
 		}
 	}
 }
@@ -50,9 +60,9 @@ func assertBodyRecipe(t *testing.T, got []byte, want api.Recipe) {
 		t.Errorf("Response was invalid JSON")
 	}
 
-	if result.ID != want.ID {
-		t.Errorf("Response mismatch. Expected: '%d', Got: '%d'",
-			want.ID, result.ID)
+	if result.Name != want.Name {
+		t.Errorf("Response mismatch. Expected: '%s', Got: '%s'",
+			want.Name, result.Name)
 	}
 }
 
@@ -106,39 +116,8 @@ func TestSearchRecipes(t *testing.T) {
 	})
 }
 
-func TestGETRecipes(t *testing.T) {
-	var uuids [3]guid.UUID
-
-	for i := 0; i < 3; i++ {
-		uuids[i], _ = guid.NewUUID()
-	}
-
-	recipesDB := api.Recipes{
-		api.Recipe{ID: api.RecipeID(uuids[0]), Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}},
-		api.Recipe{ID: api.RecipeID(uuids[1]), Name: "pie1", Author: "a1", Rating: 1, Tags: []string{"pie", "chocolate"}},
-		api.Recipe{ID: api.RecipeID(uuids[2]), Name: "cookie2", Author: "a2", Rating: 1, Tags: []string{"cookie", "xmas", "nye"}},
-	}
-
-	ambrosiaDB := storage.AmbrosiaStorageMemory{recipesDB}
-
-	testRunner := func(path string, expected api.Recipe) {
-		router := NewRouter(&ambrosiaDB, negroni.New())
-		request, _ := http.NewRequest(http.MethodGet, path, nil)
-		response := httptest.NewRecorder()
-		router.ServeHTTP(response, request)
-
-		assertStatus(t, response.Code, http.StatusOK)
-		assertBodyRecipe(t, response.Body.Bytes(), expected)
-	}
-
-	t.Run("query succeeds", func(t *testing.T) {
-		testRunner("/api/v1/recipe/"+uuids[1].String(), recipesDB[1])
-	})
-}
-
 func TestPOSTRecipes(t *testing.T) {
-	uuid, _ := guid.NewUUID()
-	recipe := api.Recipe{ID: api.RecipeID(uuid), Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
+	recipe := api.Recipe{Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
 	ambrosiaDB := storage.AmbrosiaStorageMemory{}
 
 	t.Run("post succeeds", func(t *testing.T) {
@@ -152,14 +131,12 @@ func TestPOSTRecipes(t *testing.T) {
 		router.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusCreated)
 
-		fmt.Printf("Total %v\n", ambrosiaDB.RecipesDB[0])
-
-		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipe/"+uuid.String(), nil)
+		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipes", nil)
 		response = httptest.NewRecorder()
 		router.ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
-		assertBodyRecipe(t, response.Body.Bytes(), recipe)
+		assertBodyRecipes(t, response.Body.Bytes(), api.Recipes{recipe})
 	})
 }
 
@@ -170,19 +147,20 @@ func TestPUTRecipes(t *testing.T) {
 
 	t.Run("put succeeds", func(t *testing.T) {
 		router := NewRouter(&ambrosiaDB, negroni.New())
+
 		recipe.Author = "a2"
 
 		expectedTestJSON, _ := json.Marshal(recipe)
 		b := bytes.NewBuffer(expectedTestJSON)
 
-		request, _ := http.NewRequest(http.MethodPut, "/api/v1/recipe/"+uuid.String(), b)
+		idString := uuid.String()
+
+		request, _ := http.NewRequest(http.MethodPut, "/api/v1/recipe/"+idString, b)
 		response := httptest.NewRecorder()
 		router.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusCreated)
 
-		fmt.Printf("Total %v\n", ambrosiaDB.RecipesDB[0])
-
-		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipe/"+uuid.String(), nil)
+		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipe/"+idString, nil)
 		response = httptest.NewRecorder()
 		router.ServeHTTP(response, request)
 
