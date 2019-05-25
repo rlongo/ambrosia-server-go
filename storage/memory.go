@@ -1,19 +1,15 @@
-package memory
+package storage
 
 import (
 	"fmt"
 	"log"
 
+	guid "github.com/google/uuid"
 	"github.com/rlongo/ambrosia/api"
 )
 
 type AmbrosiaStorageMemory struct {
 	RecipesDB api.Recipes
-}
-
-// Open fakes a new DB connection
-func Open(storageConnectionString string) (*AmbrosiaStorageMemory, error) {
-	return &AmbrosiaStorageMemory{}, nil
 }
 
 func tagsFilter(tags []string, filter []string) bool {
@@ -58,17 +54,22 @@ func (db *AmbrosiaStorageMemory) GetRecipe(id api.RecipeID) (api.Recipe, error) 
 		}
 	}
 
-	return api.Recipe{}, fmt.Errorf("Result not found")
+	return api.Recipe{}, fmt.Errorf("Recipe not found")
 }
 
 func (db *AmbrosiaStorageMemory) AddRecipe(recipe *api.Recipe) error {
-	log.Println("Warning: AmbrosiaStorageMemory.AddRecipe not safe for production!")
+	log.Println("!!!Warning: AmbrosiaStorageMemory.AddRecipe not safe for production!")
+	uuid, err := guid.NewUUID()
+	if err != nil {
+		return err
+	}
+	recipe.ID = api.RecipeID(uuid)
 	db.RecipesDB = append(db.RecipesDB, *recipe)
 	return nil
 }
 
 func (db *AmbrosiaStorageMemory) UpdateRecipe(recipe *api.Recipe) error {
-	log.Println("Warning: AmbrosiaStorageMemory.UpdateRecipe not safe for production!")
+	log.Println("!!!Warning: AmbrosiaStorageMemory.UpdateRecipe not safe for production!")
 	for i, r := range db.RecipesDB {
 		if r.ID == recipe.ID {
 			db.RecipesDB[i] = *recipe
@@ -76,5 +77,5 @@ func (db *AmbrosiaStorageMemory) UpdateRecipe(recipe *api.Recipe) error {
 		}
 	}
 
-	return fmt.Errorf("Result not found")
+	return fmt.Errorf("Recipe not found")
 }
