@@ -69,9 +69,17 @@ func (db *AmbrosiaStorageMongo) GetRecipes(filterTags []string, filterAuthor str
 	}
 
 	if cur, err = db.collection.Find(context.Background(), filter); err == nil {
-		if err = cur.All(context.Background(), &result); err == nil {
-			return result, nil
+		for cur.Next(context.Background()) {
+			// To decode into a struct, use cursor.Decode()
+			var recipe api.Recipe
+			err := cur.Decode(&recipe)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, recipe)
 		}
+
+		return result, nil
 	}
 
 	return nil, err
