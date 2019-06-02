@@ -9,6 +9,7 @@ import (
 
 	"github.com/rlongo/ambrosia/app"
 	"github.com/rlongo/ambrosia/storage"
+	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
 
@@ -31,9 +32,12 @@ func main() {
 
 	defer storageService.Close()
 
+	corsConfig := cors.Default()
+
 	middleware := negroni.New(
 		negroni.NewRecovery(),
 		negroni.NewLogger(),
+		corsConfig,
 	)
 	router := app.NewRouter(storageService, middleware)
 
