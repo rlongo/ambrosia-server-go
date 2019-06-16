@@ -32,7 +32,7 @@ func main() {
 
 	defer storageService.Close()
 
-	corsConfig := cors.Default()
+	corsConfig := cors.AllowAll()
 
 	middleware := negroni.New(
 		negroni.NewRecovery(),
