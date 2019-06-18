@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"time"
 
 	"github.com/rlongo/ambrosia/app"
 	"github.com/rlongo/ambrosia/storage"
@@ -32,26 +30,19 @@ func main() {
 
 	defer storageService.Close()
 
-	corsConfig := cors.AllowAll()
+	corsConfig := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: false,
+		Debug:            true,
+	})
 
-	middleware := negroni.New(
-		negroni.NewRecovery(),
-		negroni.NewLogger(),
-		corsConfig,
-	)
-	router := app.NewRouter(storageService, middleware)
+	middleware := negroni.Classic()
+	middleware.Use(corsConfig)
 
-	log.Printf("listening on IPv4 address \"0.0.0.0\", port %s", port)
-	log.Printf("listening on IPv6 address \"::\", port %s", port)
+	router := app.NewRouter(storageService)
+	middleware.UseHandler(router)
 
-	s := &http.Server{
-		Addr:           ":" + port,
-		Handler:        router,
-		WriteTimeout:   time.Second * 15,
-		ReadTimeout:    time.Second * 15,
-		IdleTimeout:    time.Second * 60,
-		MaxHeaderBytes: 1 << 20,
-	}
-
-	log.Fatal(s.ListenAndServe())
+	middleware.Run(":" + port)
 }
