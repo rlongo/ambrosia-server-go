@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	guid "github.com/google/uuid"
-	"github.com/urfave/negroni"
 
 	"github.com/rlongo/ambrosia/api"
 	"github.com/rlongo/ambrosia/storage"
@@ -82,7 +81,7 @@ func TestSearchRecipes(t *testing.T) {
 	ambrosiaDB := storage.AmbrosiaStorageMemory{recipesDB}
 
 	testRunner := func(path string, expected api.Recipes) {
-		router := NewRouter(&ambrosiaDB, negroni.New())
+		router := NewRouter(&ambrosiaDB)
 		request, _ := http.NewRequest(http.MethodGet, path, nil)
 		response := httptest.NewRecorder()
 		router.ServeHTTP(response, request)
@@ -121,7 +120,7 @@ func TestPOSTRecipes(t *testing.T) {
 	ambrosiaDB := storage.AmbrosiaStorageMemory{}
 
 	t.Run("post succeeds", func(t *testing.T) {
-		router := NewRouter(&ambrosiaDB, negroni.New())
+		router := NewRouter(&ambrosiaDB)
 
 		expectedTestJSON, _ := json.Marshal(recipe)
 		b := bytes.NewBuffer(expectedTestJSON)
@@ -146,7 +145,7 @@ func TestPUTRecipes(t *testing.T) {
 	ambrosiaDB := storage.AmbrosiaStorageMemory{RecipesDB: api.Recipes{recipe}}
 
 	t.Run("put succeeds", func(t *testing.T) {
-		router := NewRouter(&ambrosiaDB, negroni.New())
+		router := NewRouter(&ambrosiaDB)
 
 		recipe.Author = "a2"
 
