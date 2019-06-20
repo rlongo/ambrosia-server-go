@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	guid "github.com/google/uuid"
-	"github.com/rlongo/ambrosia/api"
+	"github.com/rlongo/ambrosia-server-go/api"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

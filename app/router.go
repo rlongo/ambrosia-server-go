@@ -3,7 +3,7 @@ package app
 import (
 	"net/http"
 
-	"github.com/rlongo/ambrosia/api"
+	"github.com/rlongo/ambrosia-server-go/api"
 
 	"github.com/gorilla/mux"
 )

@@ -9,7 +9,7 @@ import (
 
 	guid "github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/rlongo/ambrosia/api"
+	"github.com/rlongo/ambrosia-server-go/api"
 )
 
 // The SearchRecipes retrieves metadata about all recipes matching the query

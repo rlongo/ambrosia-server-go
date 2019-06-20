@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/rlongo/ambrosia/app"
-	"github.com/rlongo/ambrosia/storage"
+	"github.com/rlongo/ambrosia-server-go/app"
+	"github.com/rlongo/ambrosia-server-go/storage"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )

@@ -9,8 +9,8 @@ import (
 
 	guid "github.com/google/uuid"
 
-	"github.com/rlongo/ambrosia/api"
-	"github.com/rlongo/ambrosia/storage"
+	"github.com/rlongo/ambrosia-server-go/api"
+	"github.com/rlongo/ambrosia-server-go/storage"
 )
 
 func assertStatus(t *testing.T, got, want int) {

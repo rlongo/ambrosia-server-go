@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	guid "github.com/google/uuid"
-	"github.com/rlongo/ambrosia/api"
+	"github.com/rlongo/ambrosia-server-go/api"
 )
 
 const (

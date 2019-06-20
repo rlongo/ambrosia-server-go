@@ -1,4 +1,4 @@
-module github.com/rlongo/ambrosia
+module github.com/rlongo/ambrosia-server-go
 
 go 1.12
 
@@ -10,13 +10,15 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.2
 	github.com/rs/cors v1.6.0
-	github.com/stretchr/testify v1.3.0 // indirect
-	github.com/tidwall/pretty v0.0.0-20190325153808-1166b9ac2b65 // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/tidwall/pretty v1.0.0 // indirect
 	github.com/urfave/negroni v1.0.0
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
-	go.mongodb.org/mongo-driver v1.0.2
-	golang.org/x/crypto v0.0.0-20190530122614-20be4c3c3ed5 // indirect
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
+	go.mongodb.org/mongo-driver v1.0.3
+	golang.org/x/crypto v0.0.0-20190618222545-ea8f1a30c443 // indirect
+	golang.org/x/net v0.0.0-20190619014844-b5b0513f8c1b // indirect
+	golang.org/x/sys v0.0.0-20190619223125-e40ef342dc56 // indirect
 	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/tools v0.0.0-20190619215442-4adf7a708c2d // indirect
 )

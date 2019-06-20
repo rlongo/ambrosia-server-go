@@ -3,8 +3,8 @@ package app
 import (
 	"net/http"
 
-	"github.com/rlongo/ambrosia/api"
-	"github.com/rlongo/ambrosia/app/handler"
+	"github.com/rlongo/ambrosia-server-go/api"
+	"github.com/rlongo/ambrosia-server-go/app/handler"
 )
 
 type route struct {
