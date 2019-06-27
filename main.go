@@ -23,6 +23,8 @@ func main() {
 	db := getOSVariable("DB_URL")
 	port := getOSVariable("PORT")
 
+    fmt.Println("Using storage: ", db)
+
 	storageService, err := storage.OpenMongo(db, storage.RecipesCollection)
 	if err != nil {
 		log.Fatal(err)

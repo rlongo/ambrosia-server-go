@@ -3,7 +3,7 @@ from golang:1.12-alpine AS builder
 # Need git
 RUN apk update && apk add --no-cache git tzdata
 
-# Used for security in alpine image
+# Used for security in image
 RUN adduser -D -g '' appuser
 
 WORKDIR /usr/src/myapp
