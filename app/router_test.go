@@ -20,7 +20,7 @@ func assertStatus(t *testing.T, got, want int) {
 	}
 }
 
-func assertBodyRecipes(t *testing.T, got []byte, want api.Recipes) {
+func assertBodyRecipes(t *testing.T, got []byte, want api.Recipes) api.Recipes {
 	t.Helper()
 	var results api.Recipes
 
@@ -49,9 +49,11 @@ func assertBodyRecipes(t *testing.T, got []byte, want api.Recipes) {
 			t.Errorf("Expected result not found '%s'", k)
 		}
 	}
+
+	return results
 }
 
-func assertBodyRecipe(t *testing.T, got []byte, want api.Recipe) {
+func assertBodyRecipe(t *testing.T, got []byte, want api.Recipe) api.Recipe {
 	t.Helper()
 	var result api.Recipe
 
@@ -63,6 +65,8 @@ func assertBodyRecipe(t *testing.T, got []byte, want api.Recipe) {
 		t.Errorf("Response mismatch. Expected: '%s', Got: '%s'",
 			want.Name, result.Name)
 	}
+
+	return result
 }
 
 func TestSearchRecipes(t *testing.T) {
@@ -116,10 +120,10 @@ func TestSearchRecipes(t *testing.T) {
 }
 
 func TestPOSTRecipes(t *testing.T) {
-	recipe := api.Recipe{Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"cake", "easter"}}
-	ambrosiaDB := storage.AmbrosiaStorageMemory{}
 
 	t.Run("post succeeds", func(t *testing.T) {
+		recipe := api.Recipe{Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"Cake", "EASTER"}}
+		ambrosiaDB := storage.AmbrosiaStorageMemory{}
 		router := NewRouter(&ambrosiaDB)
 
 		expectedTestJSON, _ := json.Marshal(recipe)
@@ -136,6 +140,37 @@ func TestPOSTRecipes(t *testing.T) {
 
 		assertStatus(t, response.Code, http.StatusOK)
 		assertBodyRecipes(t, response.Body.Bytes(), api.Recipes{recipe})
+	})
+
+
+	t.Run("post sanitizes", func(t *testing.T) {
+		recipe := api.Recipe{Name: "cake1", Author: "a1", Rating: 1, Tags: []string{"Cake", "EASTER"}}
+		ambrosiaDB := storage.AmbrosiaStorageMemory{}
+		router := NewRouter(&ambrosiaDB)
+
+		expectedTestJSON, _ := json.Marshal(recipe)
+		b := bytes.NewBuffer(expectedTestJSON)
+
+		request, _ := http.NewRequest(http.MethodPost, "/api/v1/recipe", b)
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusCreated)
+
+		request, _ = http.NewRequest(http.MethodGet, "/api/v1/recipes", nil)
+		response = httptest.NewRecorder()
+		router.ServeHTTP(response, request)
+
+		var results api.Recipes
+		
+		if err := json.Unmarshal(response.Body.Bytes(), &results); err != nil {
+			t.Errorf("Response was invalid JSON")
+		}
+		
+		myRecipe := results[0]
+
+		if myRecipe.Tags[0] != "cake" || myRecipe.Tags[1] != "easter" {
+			t.Errorf("API did not sanitize input, got: %v", myRecipe.Tags)
+		}
 	})
 }
 

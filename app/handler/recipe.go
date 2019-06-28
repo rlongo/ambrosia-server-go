@@ -71,6 +71,8 @@ func AddRecipe(storage api.StorageServiceRecipes) http.HandlerFunc {
 			return
 		}
 
+		Sanitize(&recipe)
+
 		if err := storage.AddRecipe(&recipe); err == nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
