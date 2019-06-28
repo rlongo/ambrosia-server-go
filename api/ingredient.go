@@ -4,7 +4,7 @@ package api
 type Ingredient struct {
 	Name     string `json:"name" bson:"name"`
 	Unit     string `json:"unit" bson:"unit"`
-	Quantity uint32 `json:"quantity" bson:"quantity"`
+	Quantity float32 `json:"quantity" bson:"quantity"`
 }
 
 type Ingredients []Ingredient
